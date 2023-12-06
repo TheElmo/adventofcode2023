@@ -4,24 +4,18 @@ function solveForinput(input: string)
 {
     const [timeString, distanceString] = input.split('\n');
 
-    const times = convertStringToNumberArray(timeString);
-    const distances = convertStringToNumberArray(distanceString);
+    const maxTime = convertStringToNumberArray(timeString).reduce((carry, curr) => parseInt(`${carry}${curr}`));
+    const distanceRecord = convertStringToNumberArray(distanceString).reduce((carry, curr) => parseInt(`${carry}${curr}`));
 
-    const answersForRace = [];
+    let waysToBeat = 0;
 
-    for(let index=0; index<times.length; index++) {
-        let waysToBeat = 0;
-        const maxTime = times[index];
-        const distanceRecord = distances[index];
-        for (let time=1; time<maxTime; time++) {
-            if (getDistance(maxTime, time) > distanceRecord) {
-                waysToBeat++;
-            }
+    for (let time=1; time<maxTime; time++) {
+        if (getDistance(maxTime, time) > distanceRecord) {
+            waysToBeat++;
         }
-        answersForRace.push(waysToBeat);
     }
 
-    return answersForRace.reduce((carry, curr) => carry * curr);
+    return waysToBeat;
 }
 
 
