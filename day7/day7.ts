@@ -9,10 +9,10 @@ type Play = {
 
 const cardMap = {
     'T': 10,
-    'J': 11,
     'Q': 12,
     'K': 13,
-    'A': 14
+    'A': 14,
+    'J': 1
 }
 
 const handMultiplierMap = {
@@ -112,34 +112,34 @@ function getNumberForCard(card: string) {
 function getScoreForHand(hand: string[]) {
     const occurrencesByCard: {[key: string]: number} = {};
     hand.forEach((card) => {
-        if(occurrencesByCard[getNumberForCard(card)] === undefined) {
-            occurrencesByCard[getNumberForCard(card)] = 0;
+        if(occurrencesByCard[card] === undefined) {
+            occurrencesByCard[card] = 0;
         }
-        occurrencesByCard[getNumberForCard(card)] = occurrencesByCard[getNumberForCard(card)] +1;
+        occurrencesByCard[card] = occurrencesByCard[card] +1;
     });
 
     const pairs = getPairs(occurrencesByCard) as string[];
-    const threeOfKind = getOfKind(occurrencesByCard, 3) as string[];
-    const fourOfKind = getOfKind(occurrencesByCard, 4) as string[];
-    const fiveOfKind = getOfKind(occurrencesByCard, 5) as string[];
+    const threeOfKind = getOfKind(occurrencesByCard, 3, true) as string[];
+    const fourOfKind = getOfKind(occurrencesByCard, 4, true) as string[];
+    const fiveOfKind = getOfKind(occurrencesByCard, 5, true) as string[];
     const fullHouse = getFullHouse(occurrencesByCard) as string[];
 
-    if(fiveOfKind.length === 1) {
+    if(fiveOfKind.length >= 1) {
         return handMultiplierMap['5K']
     }
-    if(fourOfKind.length === 1) {
+    if(fourOfKind.length >= 1) {
         return handMultiplierMap['4K'];
     }
-    if(fullHouse.length === 2) {
+    if(fullHouse.length >= 2) {
         return handMultiplierMap['FH'];
     }
-    if(threeOfKind.length === 1) {
+    if(threeOfKind.length >= 1) {
         return handMultiplierMap['3K'];
     }
-    if(pairs.length === 2) {
+    if(pairs.length >= 2) {
         return handMultiplierMap['2P'];
     }
-    if(pairs.length === 1) {
+    if(pairs.length >= 1) {
         return handMultiplierMap['1P'];
     }
 
@@ -149,32 +149,53 @@ function getScoreForHand(hand: string[]) {
 function getPairs(occurences: {[key: string]: number}) {
     return Object.keys(occurences).map(key => {
         const value = occurences[key];
-        if(value !== 2) {
+        const valueForJokers = key === 'J' ? 0 : (occurences['J'] ?? 0);
+        const valueWithJokers = value + valueForJokers;
+        if(valueWithJokers !== 2 && value !== 2) {
             return null;
         }
         return key;
     }).filter(card => card !== null);
 }
 
-function getOfKind(occurences: {[key: string]: number}, kindCount: number) {
+function getOfKind(occurences: {[key: string]: number}, kindCount: number, useJoker: boolean) {
     return Object.keys(occurences).map(key => {
         const value = occurences[key];
-        if(value !== kindCount) {
-            return null;
+        const valueForJokers =  key === 'J' ? 0 : (occurences['J'] ?? 0);
+        const valueWithJokers = value + valueForJokers;
+        if(useJoker && valueWithJokers === kindCount) {
+            return key;
         }
-        return key;
+        if(!useJoker && value === kindCount) {
+            return key;
+        }
+        return null;
     }).filter(card => card !== null);
 }
 
 function getFullHouse(occurences: {[key: string]: number}) {
-    const threeOfKind = getOfKind(occurences, 3);
-    const twoOfKind = getOfKind(occurences, 2);
+    const threeOfKind = getOfKind(occurences, 3, false);
+    const twoOfKind = getOfKind(occurences, 2, false);
 
-    if(threeOfKind.length !== 1 || twoOfKind.length !== 1) {
-        return [];
+    if(twoOfKind.length === 2 && occurences['J'] === 1) {
+        return [ ...twoOfKind, 'J'];
     }
 
-    return [...threeOfKind, ...twoOfKind];
+    if (threeOfKind.length === 3 && twoOfKind.length === 1) {
+        return [...threeOfKind, ...twoOfKind];
+    }
+
+    return [];
+}
+
+function hasJoker(hand: string[]) {
+    for(let card of hand) {
+        if(card === 'J') {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 console.log(solve(input));
