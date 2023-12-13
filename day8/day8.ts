@@ -45,30 +45,41 @@ function getDestination(node: graphNode, left: boolean)
 
 function followInstructions(instructions: string[])
 {
-    let zReached = false;
+    const steps: number[] = [];
+    getAllNodesWithChar('A').forEach(node => {
+        console.log(node)
+        steps.push(stepsForStart(node.self, instructions));
+    });
+    console.log(steps);
+}
+
+function getAllNodesWithChar(char: string): graphNode[]
+{
+    return Object.keys(nodeList)
+        .filter(node => node.endsWith(char))
+        .map((node) => nodeList[node]);
+}
+
+function stepsForStart(node: string, instructions: string[]): number
+{
     let instructionPosition = 0;
-    let current: graphNode = nodeList['AAA'];
+    let zReached = false;
+    let current: graphNode = nodeList[node];
     let steps = 0;
-    const seenNodes: {[key: string]: number[]} = {};
     while(!zReached) {
         if(instructionPosition >= instructions.length) {
             instructionPosition = 0
         }
-        if(seenNodes[current.self] !== undefined) {
-            seenNodes[current.self].push(instructionPosition);
-            console.log(`Seen ${current.self} before now at instruction: ${instructionPosition}`)
-        }
         steps++;
         const instruction = instructions[instructionPosition];
         const destination = getDestination(current, instruction === 'L');
-        console.log(`At ${current.self} with instruction ${instruction}:${instructionPosition}`);
         if(destination === undefined) {
             console.error('UNDEFINED!');
-            return;
+            return 0;
         }
         current = nodeList[destination];
 
-        if(current.self === 'ZZZ') {
+        if(current.self.endsWith('Z')) {
             console.log(`REACHED in ${steps} steps`)
             zReached = true;
             continue;
@@ -76,6 +87,8 @@ function followInstructions(instructions: string[])
 
         instructionPosition++;
     }
+
+    return steps;
 }
 
 const fs = require('fs');
