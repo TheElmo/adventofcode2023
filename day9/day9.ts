@@ -20,24 +20,34 @@ function buildDiffArray(numbersList: number[]): number[]
     return diffArray;
 }
 
-function solveHistories(histories: number[][])
+function solveHistories(histories: number[][], reverse = false)
 {
     const answers: number[] = [];
     histories.forEach(history => {
-        const nextNumber = solveHistory(history);
+        const nextNumber = solveHistory(history, reverse);
+        console.log(nextNumber)
+        if(reverse) {
+            answers.push(history[0] - nextNumber);
+            return;
+        }
         answers.push(history[history.length-1] + nextNumber);
     });
+    console.log(answers)
     return answers;
 }
 
-function solveHistory(history: number[]): number
+function solveHistory(history: number[], reverse= false): number
 {
     const diffArray = buildDiffArray(history);
-    console.log(diffArray)
     if(isAllZeroes(diffArray)) {
         return 0;
     }
-    return solveHistory(diffArray) + diffArray[diffArray.length-1];
+    if(reverse) {
+        const a = solveHistory(diffArray, reverse);
+        console.log(`Returning ${diffArray[0]} - ${a} = ${diffArray[0] - a}`);
+        return diffArray[0] - a;
+    }
+    return solveHistory(diffArray, reverse) + diffArray[diffArray.length-1];
 }
 
 function isAllZeroes(numbersList: number[]): boolean
@@ -46,4 +56,4 @@ function isAllZeroes(numbersList: number[]): boolean
 }
 
 
-console.log(solveHistories(histories).reduce((carry, curr) => carry + curr));
+console.log(solveHistories(histories, true).reduce((carry, curr) => carry + curr));
